@@ -1,0 +1,8 @@
+# PROTECTED: production config. All values are FAKE and for the demo only.
+database:
+  host: db.prod.invoicer.example
+  port: 5432
+  user: invoicer_app
+  password: "fake-prod-password-123"
+payments:
+  api_key: "sk_fake_0000000000000000"
