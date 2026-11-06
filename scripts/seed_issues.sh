@@ -11,11 +11,15 @@ label release-notes   0e8a16 "Probation task type: release notes"
 label small-feature   a2eeef "Probation task type: small feature"
 label protected       b60205 "Always-human zone: auth/, production config, secrets"
 
+EXISTING="$(gh api "repos/$R/issues?state=all&per_page=100" --paginate --jq '.[].title')"
 issue() {
+  if grep -qxF "$2" <<<"$EXISTING"; then echo "exists: $2"; return 0; fi
   # REST API: more reliable than `gh issue create` (GraphQL failed intermittently).
   for attempt in 1 2 3; do
     if gh api "repos/$R/issues" -f title="$2" -f body="$3" -f "labels[]=$1" --jq '"filed #\(.number): \(.title)"' 2>/dev/null; then return 0; fi
     sleep 3
+    # The create may have succeeded even if the response was lost; re-check before retrying.
+    if gh api "repos/$R/issues?state=all&per_page=100" --paginate --jq '.[].title' | grep -qxF "$2"; then echo "filed: $2"; return 0; fi
   done
   echo "FAILED: $2" >&2; return 1
 }
