@@ -11,7 +11,14 @@ label release-notes   0e8a16 "Probation task type: release notes"
 label small-feature   a2eeef "Probation task type: small feature"
 label protected       b60205 "Always-human zone: auth/, production config, secrets"
 
-issue() { gh issue create --repo "$R" --label "$1" --title "$2" --body "$3" >/dev/null && echo "filed: $2"; }
+issue() {
+  # REST API: more reliable than `gh issue create` (GraphQL failed intermittently).
+  for attempt in 1 2 3; do
+    if gh api "repos/$R/issues" -f title="$2" -f body="$3" -f "labels[]=$1" --jq '"filed #\(.number): \(.title)"' 2>/dev/null; then return 0; fi
+    sleep 3
+  done
+  echo "FAILED: $2" >&2; return 1
+}
 
 for pkg in "requests 2.28.0" "click 8.0.0" "python-dateutil 2.8.1" "rich 12.0.0" "tabulate 0.8.9"; do
   set -- $pkg
