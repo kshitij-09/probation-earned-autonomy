@@ -10,6 +10,7 @@ Two checks:
 from __future__ import annotations
 
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -68,8 +69,10 @@ def _command(gate: Gate, root: Path) -> list[str]:
 
 
 def _run(gate: Gate, root: Path, cwd: Path) -> tuple[int, Counter, str]:
+    # No bytecode cache: a same-size edit within one second could run stale code.
+    env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
     proc = subprocess.run(_command(gate, root), cwd=cwd, capture_output=True,
-                          text=True, check=False)
+                          text=True, check=False, env=env)
     out = proc.stdout + proc.stderr
     failures: Counter = Counter()
     if gate.failure_pattern:
