@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -47,7 +48,10 @@ def cmd_init(args) -> int:
 
     settings_path = root / ".claude" / "settings.json"
     settings = json.loads(settings_path.read_text()) if settings_path.exists() else {}
-    command = f"{sys.executable} -m probation hook"
+    # PYTHONPATH makes the hook independent of .pth files, which macOS can hide
+    # (Python 3.13 skips hidden .pth files, breaking editable installs).
+    pkg_parent = Path(__file__).resolve().parent.parent
+    command = f'PYTHONPATH="{pkg_parent}" "{sys.executable}" -m probation hook'
     entry = lambda matcher: {"matcher": matcher,  # noqa: E731
                              "hooks": [{"type": "command", "command": command,
                                         "timeout": 600}]}
@@ -61,6 +65,21 @@ def cmd_init(args) -> int:
     settings_path.parent.mkdir(exist_ok=True)
     settings_path.write_text(json.dumps(settings, indent=2) + "\n")
     print(f"Installed the Claude Code hook in {settings_path.relative_to(root)}.")
+
+    # git pre-commit backstop: refuses any commit the Claude Code hook didn't check.
+    hooks_dir = Path(subprocess.run(["git", "rev-parse", "--git-path", "hooks"], cwd=root,
+                                    capture_output=True, text=True, check=True).stdout.strip())
+    hooks_dir = hooks_dir if hooks_dir.is_absolute() else root / hooks_dir
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    pre_commit = hooks_dir / "pre-commit"
+    line = (f'(cd "{root}" && PYTHONPATH="{pkg_parent}" "{sys.executable}" '
+            f'-m probation verify-commit) || exit 1  # probation\n')
+    existing = pre_commit.read_text() if pre_commit.exists() else "#!/bin/sh\n"
+    kept = [ln for ln in existing.splitlines(keepends=True)
+            if not (ln.rstrip().endswith("# probation") and f'cd "{root}"' in ln)]
+    pre_commit.write_text("".join(kept) + line)
+    pre_commit.chmod(0o755)
+    print(f"Installed the git pre-commit backstop in {pre_commit}.")
 
     gitignore = root / ".gitignore"
     lines = gitignore.read_text().splitlines() if gitignore.exists() else []
@@ -153,6 +172,8 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("report").set_defaults(fn=cmd_report)
     sub.add_parser("reset").set_defaults(fn=cmd_reset)
     sub.add_parser("hook").set_defaults(fn=lambda a: hook.main())
+    sub.add_parser("verify-commit").set_defaults(
+        fn=lambda a: hook.verify_commit(find_root(Path.cwd()) or sys.exit(0)))
     for name, fn in (("reject", cmd_reject), ("revert", cmd_revert)):
         sp = sub.add_parser(name)
         sp.add_argument("task")

@@ -9,3 +9,5 @@ __pycache__/
 .probation/
 examples/invoicer/.claude/settings.json
 *.egg-info/
+.switch/
+build/

@@ -229,6 +229,37 @@ def test_declined_approval_resets_streak(repo, monkeypatch):
     assert rec["streak"] == 0 and rec["rejected"] == 1
 
 
+def test_chained_commit_is_refused(repo):
+    """Staging and committing in one command would hide the change from Probation."""
+    (repo / "requirements.txt").write_text("requests==2.29.0\n")
+    cmd = {"command": 'git add requirements.txt && git commit -m "[dependency-bump] x"'}
+    out = run_hook(repo, "PreToolUse", "Bash", cmd)
+    assert out["permissionDecision"] == "deny"
+    assert "chained" in out["permissionDecisionReason"]
+    git(repo, "add", "-A")
+    out = run_hook(repo, "PreToolUse", "Bash", {"command": 'git commit -am "x"'})
+    assert out["permissionDecision"] == "deny"
+
+
+def test_no_verify_is_a_violation(repo):
+    bump(repo, "2.29.0")
+    out = run_hook(repo, "PreToolUse", "Bash",
+                   {"command": 'git commit --no-verify -m "[dependency-bump] x"'})
+    assert out["permissionDecision"] == "deny"
+    assert "Integrity violation" in out["permissionDecisionReason"]
+
+
+def test_git_backstop_blocks_unchecked_commits(repo):
+    bump(repo, "2.29.0")
+    assert hook.verify_commit(repo) == 1  # nobody checked this staged change
+    out = run_hook(repo, "PreToolUse", "Bash", {"command": 'git commit -m "[dependency-bump] x"'})
+    assert out["permissionDecision"] == "ask"
+    assert hook.verify_commit(repo) == 0  # checked (and, in real life, approved)
+    (repo / "requirements.txt").write_text("requests==9.9.9\n")
+    git(repo, "add", "-A")
+    assert hook.verify_commit(repo) == 1  # changed after the check
+
+
 def test_revert_drops_two_levels(repo):
     config = load(repo)
     led = Ledger(config)

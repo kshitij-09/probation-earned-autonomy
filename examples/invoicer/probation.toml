@@ -1,7 +1,7 @@
 # Probation policy for the invoicer demo. Matches the GitHub issue labels.
 
 [probation]
-agent = "worker"
+agent = "worker-agent"
 promote_after = 3
 max_level = 2
 
