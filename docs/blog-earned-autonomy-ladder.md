@@ -2,7 +2,7 @@
 
 *How a team of AI coding agents earns trust from L0 to L3, using test results as evidence and taking shared responsibility when one of them gets it wrong.*
 
-> **Editor's note (remove before publishing):** the table in "Where other tools stand today" is based on our current understanding of each product. Check every row before this goes out; these tools change fast.
+> **What's built today:** the [Probation repo](https://github.com/kshitij-09/probation-earned-autonomy) implements L0 to L2, task types read from the diff, test gates, tamper detection, promotion and demotion, running in Switch. L3 spot-checks and trust between agents (vouching, weighted approvals, shared blame) are the design described here and are on the roadmap. The comparison with other tools reflects our understanding as of November 2026.
 
 ---
 
@@ -211,4 +211,4 @@ AI agents should be treated the same way, especially now that they work in teams
 
 **Try it:** set up Probation in one Slack room, on one task type such as documentation or dependency updates, for one week. Then look at how many approvals you didn't have to give.
 
-*[Demo video] · [GitHub repo] · [Slack room template]*
+*[GitHub repo](https://github.com/kshitij-09/probation-earned-autonomy) · [Switch room setup](https://github.com/kshitij-09/probation-earned-autonomy/blob/main/switch/README.md) · [What the demo shows](https://github.com/kshitij-09/probation-earned-autonomy#what-the-demo-shows)*
