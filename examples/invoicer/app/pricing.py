@@ -13,8 +13,7 @@ def apply_discount(amount: Decimal, percent: Decimal) -> Decimal:
     if percent < 0 or percent > 100:
         raise ValueError("percent must be between 0 and 100")
     discounted = amount * (Decimal(100) - percent) / Decimal(100)
-    # BUG: truncates instead of rounding half-up to the nearest cent.
-    return Decimal(int(discounted * 100)) / Decimal(100)
+    return discounted.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 def invoice_total(

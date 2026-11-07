@@ -1,0 +1,52 @@
+# Probation policy for the invoicer demo. Matches the GitHub issue labels.
+
+[probation]
+agent = "worker"
+promote_after = 3
+max_level = 2
+
+[protected]
+paths = ["auth/**", "config/production.yaml", "**/.env*", "**/*secret*"]
+
+[tests]
+paths = ["tests/**"]
+
+[[gates]]
+name = "tests"
+command = ".venv/bin/pytest -q -rfE -p no:cacheprovider"
+failure_pattern = '^(?:FAILED|ERROR) (\S+)'
+
+[[gates]]
+name = "lint"
+command = ".venv/bin/ruff check . --output-format concise --no-cache"
+failure_pattern = '^([^:\s]+):\d+:\d+: (\w+)'
+
+[[task_types]]
+name = "release-notes"
+paths = ["CHANGELOG.md"]
+tests = "unchanged"
+minutes_saved = 5
+
+[[task_types]]
+name = "dependency-bump"
+paths = ["requirements.txt", "requirements-dev.txt"]
+tests = "unchanged"
+minutes_saved = 5
+
+[[task_types]]
+name = "lint-fix"
+paths = ["app/**"]
+tests = "unchanged"
+minutes_saved = 5
+
+[[task_types]]
+name = "test-fix"
+paths = ["app/**"]
+tests = "unchanged"
+minutes_saved = 15
+
+[[task_types]]
+name = "small-feature"
+paths = ["app/**", "tests/**"]
+tests = "added"
+minutes_saved = 30
