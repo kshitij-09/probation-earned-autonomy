@@ -8,6 +8,21 @@ Built for the **Flip the Switch hackathon** (4–7 Nov 2026).
 
 ---
 
+## What the demo shows
+
+Recorded live in a Slack room through Switch, with a Claude Code worker agent fixing the planted issues in `examples/invoicer`:
+
+| Step | What happened | Evidence |
+|---|---|---|
+| L0 | Every commit stopped for a Switch approval card; Probation showed the tests the fix made pass | [#15](https://github.com/kshitij-09/probation-earned-autonomy/pull/15), [#16](https://github.com/kshitij-09/probation-earned-autonomy/pull/16), [#17](https://github.com/kshitij-09/probation-earned-autonomy/pull/17) |
+| Promotion | After 3 clean dependency bumps: `🎓 worker-agent promoted to L1 for dependency-bump` | [#18](https://github.com/kshitij-09/probation-earned-autonomy/pull/18) |
+| L1 | The next bump committed and opened its PR with no approval: `🤖 Autonomous` | [#19](https://github.com/kshitij-09/probation-earned-autonomy/pull/19) |
+| Judgement call | The worker stopped and asked before pinning a dependency that would break Python 3.10 | [#17](https://github.com/kshitij-09/probation-earned-autonomy/pull/17) |
+| Demotion | A human reported a bad result; the supervisor dropped dependency-bump back to L0 | Demo video |
+| Report | `@supervisor-agent report`: approvals, autonomous changes, minutes saved | Demo video |
+
+In the demo the agents are named `worker-agent` and `supervisor-agent`; address them as `@worker-agent` and `@supervisor-agent`.
+
 ## The ladder
 
 | Level | Name | What the agent can do | Who has the final say |
@@ -46,7 +61,7 @@ Every decision is logged in `.probation/events.jsonl`, so you can always answer 
 | **ask** | Switch posts its approval request in the room; a human picks Allow or Decline |
 | **deny** | The agent posts the reason in the room |
 
-Promotions (`🎓 worker promoted to L1 for dependency-bump`), demotions and violations are handed back to the agent, which posts them in the room, so the whole team watches trust being earned. The supervisor agent answers `@supervisor report`.
+Promotions (`🎓 worker-agent promoted to L1 for dependency-bump`), demotions and violations are handed back to the agent, which posts them in the room, so the whole team watches trust being earned. The supervisor agent answers `@supervisor-agent report`.
 
 Full setup, with room and agent instructions to paste: **[switch/README.md](switch/README.md)**.
 

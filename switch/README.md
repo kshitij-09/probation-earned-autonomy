@@ -33,25 +33,25 @@ The hook's three answers map onto what Switch already does:
 
 1. **Run Switch** (Switch Console with a local server) and connect your Slack workspace.
 2. **Create a room** for the repo, e.g. `#earned-autonomy`. Paste [`room-instructions.md`](room-instructions.md) into the room instructions.
-3. **Create the worker agent** (Claude Code) with its working folder set to your project (for the demo: `examples/invoicer`). Paste [`worker.md`](worker.md) into its instructions. Set *Who can instruct this agent* to **Me and my agents**, so a triage agent can hand it work.
-4. **Create the supervisor agent** (Claude Code, same folder). Paste [`supervisor.md`](supervisor.md) into its instructions. Give it the `@supervisor` role.
-5. In the project folder, run `probation init`. This installs the hook into `.claude/settings.json`, which the worker's Claude Code picks up.
-6. Leave the worker's **"act without asking" setting off**. Probation turns on autonomy per task type when it's earned.
+3. **Create the worker agent** in *Your Agents* (Claude Code), named `worker-agent`, with **Directory** set to your project (for the demo: `examples/invoicer`). The Directory can't be changed later, and the hook only applies there. Paste [`worker.md`](worker.md) into its instructions. Set *Who can instruct this agent* to **Me and my agents**, so a triage agent can hand it work.
+4. **Create the supervisor agent** (Claude Code, same Directory), named `supervisor-agent`. Paste [`supervisor.md`](supervisor.md) into its instructions.
+5. In the project folder, run `probation init` **before** starting the agents. It installs the Claude Code hook in `.claude/settings.json` and a git pre-commit backstop that refuses any commit Probation didn't check. Set `agent = "worker-agent"` in `probation.toml`. After changing hook settings, send `!reset @worker-agent` in the room.
+6. Leave the worker's **Bypass permissions** off (Auto mode can stay on). Probation turns on autonomy per task type when it's earned.
 
 ## Try it
 
 In the room:
 
 ```
-@worker please fix issue #6 (discount rounding)
+@worker-agent please fix issue #6 (discount rounding)
 ```
 
-The worker fixes the code and tries to commit. Probation runs the tests, sees two previously failing tests now pass, and, because the worker is at L0 for `test-fix`, Switch shows an approval request. Approve it. The worker posts `🧑‍⚖️ Approved: test-fix by worker. L0, streak 1/3.`
+The worker fixes the code and tries to commit. Probation runs the tests, sees two previously failing tests now pass, and, because the worker is at L0 for `test-fix`, Switch shows an approval request. Approve it. The worker posts `🧑‍⚖️ Approved: test-fix by worker-agent. L0, streak 1/3.`
 
-After three clean changes of one type the worker posts `🎓 worker promoted to L1 for …`, and the next change of that type commits without asking.
+After three clean changes of one type the worker posts `🎓 worker-agent promoted to L1 for …`, and the next change of that type commits without asking.
 
 ```
-@supervisor report
+@supervisor-agent report
 ```
 
 posts levels, approvals, autonomous changes and minutes saved.
