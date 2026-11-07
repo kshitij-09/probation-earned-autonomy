@@ -155,6 +155,15 @@ def test_merge_needs_l2(repo):
     assert merge["permissionDecision"] == "allow"
 
 
+def test_opening_a_pr_is_not_a_merge():
+    assert not hook.MERGE.search(
+        "git push -u origin fix/2-bump-click && gh pr create --base main --title x")
+    assert hook.MERGE.search("git push origin main")
+    assert hook.MERGE.search("git push origin HEAD:main")
+    assert hook.MERGE.search("gh pr merge 19 --squash")
+    assert not hook.MERGE.search("git push -u origin fix/main-menu")
+
+
 def test_protected_edit_always_asks(repo):
     led = Ledger(load(repo))
     led.record("worker", "code-fix")["level"] = 2

@@ -30,9 +30,31 @@ from probation.ledger import Ledger
 
 EDIT_TOOLS = {"Edit", "Write", "MultiEdit", "NotebookEdit"}
 COMMIT = re.compile(r"(^|[;&|]\s*|\s)git\s+(-C\s+\S+\s+)?commit\b")
-MERGE = re.compile(
-    r"\bgh\s+pr\s+merge\b|\bgit\s+merge\b|\bgit\s+push\b.*\b(main|master)\b"
-)
+PROTECTED_BRANCHES = {"main", "master"}
+
+
+class _Merge:
+    """Matches commands that land work on the main branch.
+
+    Checked per command segment, so `git push origin fix/2 && gh pr create
+    --base main` is not mistaken for a push to main.
+    """
+
+    @staticmethod
+    def search(command: str) -> bool:
+        for segment in re.split(r"&&|\|\||;|\|", command):
+            words = segment.split()
+            if re.search(r"\bgh\s+pr\s+merge\b|\bgit\s+merge\b", segment):
+                return True
+            if "push" in words and "git" in words[: words.index("push")]:
+                targets = words[words.index("push") + 1:]
+                if any(t.split(":")[-1] in PROTECTED_BRANCHES for t in targets
+                       if not t.startswith("-")):
+                    return True
+        return False
+
+
+MERGE = _Merge()
 REJECT_AFTER_SECONDS = 2.0
 
 
