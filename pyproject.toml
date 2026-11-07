@@ -1,12 +1,31 @@
 [project]
-name = "invoicer"
+name = "probation"
 version = "0.1.0"
-description = "Tiny invoicing toolkit used as the Probation demo repository"
-requires-python = ">=3.10"
+description = "Earned autonomy for coding agents: L0 to L2 trust per task type, enforced by a Claude Code hook and surfaced in Switch"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.7"]
+
+[project.scripts]
+probation = "probation.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["probation"]
+
+[tool.setuptools.package-data]
+probation = ["template.toml"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
+extend-exclude = ["examples"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]

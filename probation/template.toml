@@ -1,0 +1,59 @@
+# Probation policy. Every agent starts at L0 for every task type.
+#   L0 Supervised  every commit needs a human
+#   L1 Draft PR    commits on its own, a human merges
+#   L2 Auto-merge  commits and merges on its own when every gate passes
+
+[probation]
+agent = "worker"     # default agent name; override per agent with PROBATION_AGENT
+promote_after = 3    # clean, test-checked changes needed to climb one level
+max_level = 2        # L3 (audited, spot-checks) is on the roadmap
+
+# Never unlocked, whatever the agent's record.
+[protected]
+paths = ["auth/**", "config/production.*", "**/.env*", "**/*secret*"]
+
+# Files that count as tests (used for the integrity check).
+[tests]
+paths = ["tests/**", "**/test_*.py"]
+
+# Gates Probation runs itself before any commit. A gate passes if the command
+# succeeds, or if it only fails in ways it already failed on the previous
+# commit (so pre-existing or flaky failures are not the agent's fault).
+[[gates]]
+name = "tests"
+command = "python -m pytest -q -rfE"
+failure_pattern = '^(?:FAILED|ERROR) (\S+)'
+
+[[gates]]
+name = "lint"
+command = "ruff check . --output-format concise"
+failure_pattern = '^([^:\s]+):\d+:\d+: (\w+)'
+
+# Task types are worked out from the files a change touches, first match wins.
+# An agent may declare one with "[type]" in its commit message; Probation
+# checks it against the diff, and a mismatch counts as cheating.
+#   tests = "unchanged"  must not touch test files
+#   tests = "added"      must add or extend tests
+[[task_types]]
+name = "docs"
+paths = ["*.md", "docs/**"]
+tests = "unchanged"
+minutes_saved = 3
+
+[[task_types]]
+name = "dependency-bump"
+paths = ["requirements*.txt", "pyproject.toml", "poetry.lock", "uv.lock"]
+tests = "unchanged"
+minutes_saved = 5
+
+[[task_types]]
+name = "code-fix"
+paths = ["src/**", "app/**", "*.py"]
+tests = "unchanged"
+minutes_saved = 10
+
+[[task_types]]
+name = "small-feature"
+paths = ["src/**", "app/**", "*.py", "tests/**"]
+tests = "added"
+minutes_saved = 20

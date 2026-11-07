@@ -6,3 +6,6 @@ __pycache__/
 .claude/settings.local.json
 *.docx
 .DS_Store
+.probation/
+examples/invoicer/.claude/settings.json
+*.egg-info/
